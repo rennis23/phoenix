@@ -9,6 +9,9 @@
 #
 set -euo pipefail
 
+# Pin all podman calls to the dedicated phoenix machine (override with PHOENIX_MACHINE).
+export CONTAINER_CONNECTION="${PHOENIX_MACHINE:-phoenix}"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTAINER_NAME="${PHOENIX_CONTAINER_NAME:-phoenix}"
 VOLUME_NAME="${PHOENIX_VOLUME_NAME:-phoenix_data}"
@@ -31,7 +34,7 @@ Usage: ./phoenix-start.sh [--recreate] [--dry-run]
   --dry-run    Print the podman commands that would run without executing them.
                Secret values are masked.
 
-Environment: PHOENIX_ENV_FILE, PHOENIX_CONTAINER_NAME, PHOENIX_VOLUME_NAME,
+Environment: PHOENIX_MACHINE, PHOENIX_ENV_FILE, PHOENIX_CONTAINER_NAME, PHOENIX_VOLUME_NAME,
 PHOENIX_VERSION, PHOENIX_IMAGE, PHOENIX_RECREATE, PHOENIX_DRY_RUN,
 PHOENIX_SECRET_SOURCE, PHOENIX_KEYCHAIN_SERVICE, PHOENIX_KEYCHAIN_ACCOUNT.
 EOF
@@ -126,7 +129,7 @@ if [[ "${DRY_RUN}" != "1" ]]; then
     die "podman is not installed or is not on PATH."
   fi
   if ! podman info >/dev/null 2>&1; then
-    die "Podman is not reachable. Start the Podman machine first: podman machine start podman-machine-default"
+    die "Podman is not reachable. Start the Podman machine first: podman machine start ${PHOENIX_MACHINE:-phoenix}"
   fi
 fi
 

@@ -6,6 +6,9 @@
 # update unless --no-backup or --dry-run is specified.
 set -euo pipefail
 
+# Pin all podman calls to the dedicated phoenix machine (override with PHOENIX_MACHINE).
+export CONTAINER_CONNECTION="${PHOENIX_MACHINE:-phoenix}"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTAINER_NAME="${PHOENIX_CONTAINER_NAME:-phoenix}"
 PHOENIX_VERSION="${PHOENIX_VERSION:-19.19.1-nonroot}"
@@ -25,6 +28,7 @@ Options:
   --help       Show this help.
 
 Environment:
+  PHOENIX_MACHINE       Podman machine to use (default: phoenix)
   PHOENIX_VERSION       Image tag (default: 19.19.1-nonroot)
   PHOENIX_IMAGE         Complete image reference; takes precedence
   PHOENIX_CONTAINER_NAME Container name (default: phoenix)
