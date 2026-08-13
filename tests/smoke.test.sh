@@ -21,6 +21,9 @@
 #
 set -euo pipefail
 
+# Pin all podman calls to the dedicated phoenix machine (override with PHOENIX_MACHINE).
+export CONTAINER_CONNECTION="${PHOENIX_MACHINE:-phoenix}"
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE="${PHOENIX_IMAGE:-docker.io/arizephoenix/phoenix:latest}"
 PORT="${PHOENIX_SMOKE_PORT:-16006}"

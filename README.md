@@ -25,10 +25,11 @@ podman machine list
 podman info
 ```
 
-If the Podman machine is stopped, start it:
+If the Podman machine is stopped, start it (the phoenix scripts pin all podman
+calls to the dedicated `phoenix` machine; override with `PHOENIX_MACHINE`):
 
 ```bash
-podman machine start podman-machine-default
+podman machine start phoenix
 ```
 
 ## Authentication model
@@ -426,7 +427,7 @@ Start the machine and retry:
 
 ```bash
 podman machine list
-podman machine start podman-machine-default
+podman machine start phoenix
 ./phoenix-start.sh
 ```
 
@@ -458,9 +459,9 @@ The initial admin password is only applied when the admin account is first creat
 The current Podman machine has 2 GiB RAM. If additional containers are running or Phoenix is terminated by the system, increase the machine allocation:
 
 ```bash
-podman machine stop podman-machine-default
-podman machine set --memory 4096 podman-machine-default
-podman machine start podman-machine-default
+podman machine stop phoenix
+podman machine set --memory 4096 phoenix
+podman machine start phoenix
 ```
 
 ## Optional PostgreSQL deployment

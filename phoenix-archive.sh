@@ -7,6 +7,9 @@
 #
 set -euo pipefail
 
+# Pin all podman calls to the dedicated phoenix machine (override with PHOENIX_MACHINE).
+export CONTAINER_CONNECTION="${PHOENIX_MACHINE:-phoenix}"
+
 CONTAINER_NAME="${PHOENIX_CONTAINER_NAME:-phoenix}"
 VOLUME_NAME="${PHOENIX_VOLUME_NAME:-phoenix_data}"
 ARCHIVE_DIR="${PHOENIX_ARCHIVE_DIR:-${HOME}/Backups/phoenix}"
@@ -18,7 +21,7 @@ Usage: ./phoenix-archive.sh
 Creates a timestamped archive of the ${VOLUME_NAME} Podman volume in:
   ${ARCHIVE_DIR}
 
-Environment: PHOENIX_CONTAINER_NAME, PHOENIX_VOLUME_NAME, PHOENIX_ARCHIVE_DIR
+Environment: PHOENIX_MACHINE, PHOENIX_CONTAINER_NAME, PHOENIX_VOLUME_NAME, PHOENIX_ARCHIVE_DIR
 EOF
 }
 
