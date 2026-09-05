@@ -21,8 +21,14 @@ FAIL=0
 CURRENT=""
 
 begin() { CURRENT="$1"; }
-ok() { PASS=$((PASS + 1)); echo "ok   - ${CURRENT}"; }
-bad() { FAIL=$((FAIL + 1)); echo "FAIL - ${CURRENT}: $1"; }
+ok() {
+  PASS=$((PASS + 1))
+  echo "ok   - ${CURRENT}"
+}
+bad() {
+  FAIL=$((FAIL + 1))
+  echo "FAIL - ${CURRENT}: $1"
+}
 
 # --- mocks ---------------------------------------------------------------------
 
@@ -30,7 +36,7 @@ MOCK_LOG="${TMP}/podman.log"
 MOCK_SECRET_DIR="${TMP}/secrets"
 mkdir -p "${TMP}/bin" "${MOCK_SECRET_DIR}"
 
-cat > "${TMP}/bin/podman" <<'EOF'
+cat >"${TMP}/bin/podman" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${MOCK_LOG}"
 case "${1:-}" in
@@ -68,7 +74,7 @@ EOF
 chmod +x "${TMP}/bin/podman"
 
 # Mock macOS `security`. Stored values live in MOCK_SECRET_DIR/<NAME>.
-cat > "${TMP}/bin/security" <<'EOF'
+cat >"${TMP}/bin/security" <<'EOF'
 #!/usr/bin/env bash
 cmd="$1"; shift
 label=""
@@ -128,6 +134,7 @@ run_start() {
     MOCK_CONTAINER_STATUS=stopped
     MOCK_CONTAINER_ENV=""
     PHOENIX_ENV_FILE="${envfile}"
+    PHOENIX_API_KEY=
   )
   run_env+=("$@")
   env "${run_env[@]}" bash "${START}" >"${TMP}/out.log" 2>"${TMP}/err.log"
@@ -144,18 +151,18 @@ err_lacks() { ! grep -qF -- "$1" "${TMP}/err.log" || bad "stderr unexpectedly co
 log_has() { grep -qF -- "$1" "${MOCK_LOG}" || bad "podman log missing: $1"; }
 log_lacks() { ! grep -qF -- "$1" "${MOCK_LOG}" || bad "podman log unexpectedly contains: $1"; }
 
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 
 # --- fixtures ------------------------------------------------------------------
 
 write_env() {
   local file="$1"
   shift
-  printf '%s\n' "$@" > "${file}"
+  printf '%s\n' "$@" >"${file}"
   chmod 600 "${file}"
 }
 
-SECRET="$(openssl rand -hex 32)"        # 64 chars, digits + lowercase
+SECRET="$(openssl rand -hex 32)" # 64 chars, digits + lowercase
 SECRET_SHORT="$(printf 'a%.0s' {1..10})"
 ADMIN_PW="Ab3!x$(openssl rand -hex 8)"
 ADMIN_PW_SHORT="Aa1!x"
@@ -249,7 +256,7 @@ else
 fi
 
 begin "existing stopped container is started, not recreated"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 ENV_FILE="${TMP}/t8.env"
 write_env "${ENV_FILE}" "PHOENIX_ENABLE_AUTH=true" "PHOENIX_SECRET=${SECRET}" \
   "PHOENIX_DEFAULT_ADMIN_INITIAL_PASSWORD=${ADMIN_PW}"
@@ -262,7 +269,7 @@ else
 fi
 
 begin "running container reports ports without recreating"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 if run_start "${ENV_FILE}" MOCK_CONTAINER_EXISTS=1 MOCK_CONTAINER_STATUS=running; then
   log_has "port phoenix"
   log_lacks "run --detach"
@@ -273,7 +280,7 @@ else
 fi
 
 begin "config drift (container without auth, .env with auth) warns, no recreate"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 if run_start "${ENV_FILE}" MOCK_CONTAINER_EXISTS=1 MOCK_CONTAINER_STATUS=running \
   MOCK_CONTAINER_ENV="PHOENIX_WORKING_DIR=/mnt/data"; then
   err_has "created without authentication"
@@ -284,7 +291,7 @@ else
 fi
 
 begin "secret drift (container auth with different secret) warns"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 OLD_SECRET="$(openssl rand -hex 32)"
 if run_start "${ENV_FILE}" MOCK_CONTAINER_EXISTS=1 MOCK_CONTAINER_STATUS=running \
   MOCK_CONTAINER_ENV=$'PHOENIX_ENABLE_AUTH=true\nPHOENIX_SECRET='"${OLD_SECRET}"; then
@@ -297,7 +304,7 @@ else
 fi
 
 begin "matching auth container with same secret stays quiet"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 if run_start "${ENV_FILE}" MOCK_CONTAINER_EXISTS=1 MOCK_CONTAINER_STATUS=running \
   MOCK_CONTAINER_ENV=$'PHOENIX_ENABLE_AUTH=true\nPHOENIX_SECRET='"${SECRET}"; then
   err_lacks "PHOENIX_SECRET differs"
@@ -309,7 +316,7 @@ else
 fi
 
 begin "PHOENIX_RECREATE=1 recreates the container"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 if run_start "${ENV_FILE}" PHOENIX_RECREATE=1 MOCK_CONTAINER_EXISTS=1 MOCK_CONTAINER_STATUS=stopped; then
   log_has "rm -f phoenix"
   log_has "run --detach"
@@ -319,10 +326,10 @@ else
 fi
 
 begin "keychain mode resolves secrets and passes them to podman"
-: > "${MOCK_LOG}"
-printf '%s' "${SECRET}" > "${MOCK_SECRET_DIR}/PHOENIX_SECRET"
-printf '%s' "${ADMIN_PW}" > "${MOCK_SECRET_DIR}/PHOENIX_DEFAULT_ADMIN_INITIAL_PASSWORD"
-printf '%s' "${API_KEY}" > "${MOCK_SECRET_DIR}/PHOENIX_API_KEY"
+: >"${MOCK_LOG}"
+printf '%s' "${SECRET}" >"${MOCK_SECRET_DIR}/PHOENIX_SECRET"
+printf '%s' "${ADMIN_PW}" >"${MOCK_SECRET_DIR}/PHOENIX_DEFAULT_ADMIN_INITIAL_PASSWORD"
+printf '%s' "${API_KEY}" >"${MOCK_SECRET_DIR}/PHOENIX_API_KEY"
 ENV_FILE="${TMP}/t12.env"
 write_env "${ENV_FILE}" \
   "PHOENIX_ENABLE_AUTH=true" \
@@ -340,7 +347,7 @@ else
 fi
 
 begin "keychain mode missing API key warns"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 rm -f "${MOCK_SECRET_DIR}/PHOENIX_API_KEY"
 if run_start "${ENV_FILE}"; then
   err_has "PHOENIX_API_KEY is not set"
@@ -350,7 +357,7 @@ else
 fi
 
 begin "dry-run prints masked commands and does not leak secrets"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 ENV_FILE="${TMP}/t14.env"
 write_env "${ENV_FILE}" \
   "PHOENIX_ENABLE_AUTH=true" \
@@ -370,7 +377,7 @@ else
 fi
 
 begin "no .env keeps anonymous behavior (no auth env passed)"
-: > "${MOCK_LOG}"
+: >"${MOCK_LOG}"
 if run_start "/nonexistent/.env"; then
   log_lacks "PHOENIX_ENABLE_AUTH"
   log_lacks "PHOENIX_SECRET="
@@ -380,7 +387,7 @@ else
 fi
 
 begin "keychain:set/get/check/delete round-trip"
-printf '%s' "roundtrip-value" | \
+printf '%s' "roundtrip-value" |
   env PATH="${TMP}/bin:${PATH}" MOCK_SECRET_DIR="${MOCK_SECRET_DIR}" \
     bash "${SECRETS}" keychain:set PHOENIX_API_KEY >/dev/null 2>&1
 got="$(env PATH="${TMP}/bin:${PATH}" MOCK_SECRET_DIR="${MOCK_SECRET_DIR}" \

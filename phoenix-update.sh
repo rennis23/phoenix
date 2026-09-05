@@ -11,7 +11,7 @@ export CONTAINER_CONNECTION="${PHOENIX_MACHINE:-phoenix}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTAINER_NAME="${PHOENIX_CONTAINER_NAME:-phoenix}"
-PHOENIX_VERSION="${PHOENIX_VERSION:-19.19.1-nonroot}"
+PHOENIX_VERSION="${PHOENIX_VERSION:-20.8.0-nonroot}"
 IMAGE="${PHOENIX_IMAGE:-docker.io/arizephoenix/phoenix:${PHOENIX_VERSION}}"
 NO_BACKUP=0
 DRY_RUN="${PHOENIX_DRY_RUN:-0}"
@@ -29,7 +29,7 @@ Options:
 
 Environment:
   PHOENIX_MACHINE       Podman machine to use (default: phoenix)
-  PHOENIX_VERSION       Image tag (default: 19.19.1-nonroot)
+  PHOENIX_VERSION       Image tag (default: 20.8.0-nonroot)
   PHOENIX_IMAGE         Complete image reference; takes precedence
   PHOENIX_CONTAINER_NAME Container name (default: phoenix)
   PHOENIX_ARCHIVE_DIR   Archive destination, passed to phoenix-archive.sh
@@ -38,10 +38,17 @@ EOF
 
 for arg in "$@"; do
   case "$arg" in
-    --no-backup) NO_BACKUP=1 ;;
-    --dry-run) DRY_RUN=1 ;;
-    -h|--help) usage; exit 0 ;;
-    *) echo "Error: unknown option: $arg" >&2; usage >&2; exit 2 ;;
+  --no-backup) NO_BACKUP=1 ;;
+  --dry-run) DRY_RUN=1 ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Error: unknown option: $arg" >&2
+    usage >&2
+    exit 2
+    ;;
   esac
 done
 
@@ -79,7 +86,7 @@ container_env_value() {
       printf '%s' "${line#*=}"
       return 0
     fi
-  done <<< "${existing_env}"
+  done <<<"${existing_env}"
   return 1
 }
 for name in PHOENIX_ENABLE_AUTH PHOENIX_SECRET PHOENIX_DEFAULT_ADMIN_INITIAL_PASSWORD PHOENIX_ENABLE_STRONG_PASSWORD_POLICY; do
@@ -108,6 +115,12 @@ PHOENIX_IMAGE="${IMAGE}" PHOENIX_RECREATE=1 \
 status="$(podman container inspect --format '{{.State.Status}}' "${CONTAINER_NAME}")"
 if [[ "${status}" != "running" ]]; then
   echo "Error: Phoenix container ${CONTAINER_NAME} is not running (status: ${status})." >&2
+  exit 1
+fi
+
+actual_image="$(podman container inspect --format '{{.Config.Image}}' "${CONTAINER_NAME}")"
+if [[ "${actual_image}" != "${IMAGE}" ]]; then
+  echo "Error: Phoenix container ${CONTAINER_NAME} is using ${actual_image}, expected ${IMAGE}." >&2
   exit 1
 fi
 
