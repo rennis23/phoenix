@@ -42,14 +42,14 @@ scripts or README is not a deployment; the update command must also be run.
 2. Preview the update if the target release or configuration is uncertain:
 
    ```bash
-   PHOENIX_VERSION=20.8.0-nonroot ./phoenix-update.sh --dry-run
+   PHOENIX_VERSION=20.9.0-nonroot ./phoenix-update.sh --dry-run
    ```
 
 3. Apply the update. This archives `phoenix_data`, pulls the image, recreates
    the container, and preserves the volume and authentication settings:
 
    ```bash
-   PHOENIX_VERSION=20.8.0-nonroot ./phoenix-update.sh
+   PHOENIX_VERSION=20.9.0-nonroot ./phoenix-update.sh
    ```
 
    Use `--no-backup` only when a recent suitable archive already exists.

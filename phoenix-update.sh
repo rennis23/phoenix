@@ -11,7 +11,7 @@ export CONTAINER_CONNECTION="${PHOENIX_MACHINE:-phoenix}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTAINER_NAME="${PHOENIX_CONTAINER_NAME:-phoenix}"
-PHOENIX_VERSION="${PHOENIX_VERSION:-20.8.0-nonroot}"
+PHOENIX_VERSION="${PHOENIX_VERSION:-20.9.0-nonroot}"
 IMAGE="${PHOENIX_IMAGE:-docker.io/arizephoenix/phoenix:${PHOENIX_VERSION}}"
 NO_BACKUP=0
 DRY_RUN="${PHOENIX_DRY_RUN:-0}"
@@ -29,7 +29,7 @@ Options:
 
 Environment:
   PHOENIX_MACHINE       Podman machine to use (default: phoenix)
-  PHOENIX_VERSION       Image tag (default: 20.8.0-nonroot)
+  PHOENIX_VERSION       Image tag (default: 20.9.0-nonroot)
   PHOENIX_IMAGE         Complete image reference; takes precedence
   PHOENIX_CONTAINER_NAME Container name (default: phoenix)
   PHOENIX_ARCHIVE_DIR   Archive destination, passed to phoenix-archive.sh

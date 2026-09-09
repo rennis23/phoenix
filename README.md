@@ -299,7 +299,7 @@ image, and recreate the container without deleting the persistent
 ./phoenix-update.sh
 ```
 
-The default image is `docker.io/arizephoenix/phoenix:20.8.0-nonroot`. Select a
+The default image is `docker.io/arizephoenix/phoenix:20.9.0-nonroot`. Select a
 new release without editing the script:
 
 ```bash

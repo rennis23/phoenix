@@ -26,7 +26,7 @@ case "${1:-}" in
         if [[ "${4:-}" == *Config.Env* ]]; then
           printf '%s\n' "${MOCK_CONTAINER_ENV:-}"
         elif [[ "${4:-}" == *Config.Image* ]]; then
-          printf '%s\n' "${PHOENIX_IMAGE:-docker.io/arizephoenix/phoenix:${PHOENIX_VERSION:-20.8.0-nonroot}}"
+          printf '%s\n' "${PHOENIX_IMAGE:-docker.io/arizephoenix/phoenix:${PHOENIX_VERSION:-20.9.0-nonroot}}"
         else
           printf '%s\n' running
         fi
@@ -61,7 +61,7 @@ check() {
 }
 
 run_update env
-check "uses the non-root default image" "pull docker.io/arizephoenix/phoenix:20.8.0-nonroot" "$LOG"
+check "uses the non-root default image" "pull docker.io/arizephoenix/phoenix:20.9.0-nonroot" "$LOG"
 check "recreates through the start script" "run --detach --name phoenix" "$LOG"
 check "verifies the deployed image" "container inspect --format {{.Config.Image}} phoenix" "$LOG"
 
@@ -78,7 +78,7 @@ check "preserves existing admin bootstrap settings" "--env PHOENIX_DEFAULT_ADMIN
 
 : >"${LOG}"
 if PATH="${TMP}/bin:${PATH}" MOCK_LOG="${LOG}" "${UPDATE}" --dry-run >"${TMP}/dry" 2>"${TMP}/err"; then
-  check "dry-run prints the pull" "[dry-run] podman pull docker.io/arizephoenix/phoenix:20.8.0-nonroot" "${TMP}/dry"
+  check "dry-run prints the pull" "[dry-run] podman pull docker.io/arizephoenix/phoenix:20.9.0-nonroot" "${TMP}/dry"
   if [[ ! -s "${LOG}" ]]; then
     PASS=$((PASS + 1))
     echo "ok   - dry-run does not call Podman"
